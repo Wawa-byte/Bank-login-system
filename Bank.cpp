@@ -1,41 +1,53 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <list>
 using namespace std;
 
+class User {
+public:
+	string username;
+	string password;
+};
+list<User> applicationUsers;
+
 // Create's account for user if they don't have one.
-void createAccount() {
+User createAccount() {
 	string username;
 	string password;
 	cout << "Please enter a username >>> " << endl;
 	cin >> username;
 	cout << "Please enter a passowrd >>> " << endl;
 	cin >> password;
-	ofstream newaccount;
-	newaccount.open("accounts.txt", ios::in);
-	newaccount << "Username: " << username << "Password: " << password << endl;
-	newaccount.close();
-	cout << "Thank you, your account has now been created! \n"; 
+	cout << "Thank you " << username << ", your account has now been created! \n";
+
+	User user;
+	user.username = username;
+	user.password = password;
+	return user;
 }
 
-// If user have a account they will be presented with this login screen. 
-void login() {
-	cout << "Please enter your details to access your bank details \n";
+// If user have a account they will be presented with this login screen.
+bool login() {
 	string username;
 	string password;
-	ifstream userAccounts;
-	userAccounts.open("accounts.txt", ios::out);
 	cout << "Enter your username: " << endl;
 	cin >> username;
 	cout << "Enter your password: " << endl;
 	cin >> password;
-	string username2, password2;
-	userAccounts >> username2 >> password2;
-	userAccounts.close();
-	if (username != username2 || password != password2)
-		cout << "Login failed. Incorrect username or password. Please try again." << endl;
-	else if (username == username2 || password == password2)
-		cout << "Login Sucesful! \n" << endl;
+
+	for (User applicationUser : applicationUsers) { // Foreach loop it iterates all the elements of applicationUsers list
+		if (applicationUser.username == username) // When it finds user with that username, it should check password to see if they match
+		{
+			if (applicationUser.password == password) {
+				cout << "Login Successful!" << endl;
+				return true;
+			}
+		}
+	}
+	// If user enters incorrect details 
+	cout << "Login failed. Please try again." << endl;
+	return false;
 }
 
 void showMenu() {
@@ -49,19 +61,32 @@ void showMenu() {
 
 int main() {
 	int option;
-	double balance = 750;
+	double balance = 500;
+	bool userLogedIn = false;
+	char hasAccount;
 
-	string accountMade;
-	cout << "Do you have an account: Y/N ";
-	cin >> accountMade;
+	do // User can't access bank until they are registered and logged in
+	{
+		do
+		{
+			cout << "Do you have an account: Y/N ";
+			cin >> hasAccount;
+			hasAccount = ::tolower(hasAccount); // Converts input to lowercase
+		} while (hasAccount != 'y' && hasAccount != 'n');
 
-	if (accountMade == "Y" || accountMade == "y") {
-		login();
-	}
-	else if (accountMade == "N" || accountMade == "n") {
-		createAccount();
-		login();
-	}
+
+		if (hasAccount == 'n') {
+			User createdUser = createAccount();
+			applicationUsers.push_back(createdUser);
+			hasAccount = 'y';
+		}
+
+		if (hasAccount == 'y')
+			userLogedIn = login();
+
+	} while (!userLogedIn);
+
+	// Once the user is registered they can access their bank inforamtion
 
 	do {
 		showMenu();
@@ -71,7 +96,7 @@ int main() {
 		// cls clears the console after user selects an option
 
 		switch (option) {
-		case 1:cout << "Balance is €" << balance << endl; break;
+		case 1:cout << "Balance is â‚¬" << balance << endl; break;
 
 		case 2:cout << "Deposit amount: ";
 			double depositAmount;
